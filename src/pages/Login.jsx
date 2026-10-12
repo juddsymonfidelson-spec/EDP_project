@@ -45,7 +45,8 @@ function Login() {
               required
             />
           </div>
-
+          <p>dont have and account? <button onClick={() => navigate("/register")}>Sign Up</button></p>
+          
           <button type="submit">
             Log In
           </button>

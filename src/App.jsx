@@ -8,6 +8,7 @@ import {
 
 import Dashboard from "./pages/Dashboard";
 import Reservation from "./pages/Reservation";
+import SignIn from "./pages/Signin";
 import Equipment from "./pages/Equipment";
 import Login from "./pages/Login";
 
@@ -56,7 +57,12 @@ function AppRoutes() {
           <Login />
         }
       />
-
+      <Route
+        path="/register"
+        element={
+          <SignIn />
+      }
+      />
       <Route
         path="/"
         element={
