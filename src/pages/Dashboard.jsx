@@ -45,7 +45,7 @@ function Dashboard({ onLogout }) {
                   className="view-all"
                   onClick={() => navigate("/reservation")}
                 >
-                  View All Reservations nang ibang human peopol
+                  View All Reservations nang ibang human peopol {/*To be removed if sure na talaga*/}
                 </button>
 
               </div>
