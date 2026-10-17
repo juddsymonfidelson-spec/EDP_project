@@ -20,16 +20,11 @@ function Reservation({ onLogout }) {
     setSelectedItems((selected) =>
       selected.includes(item)
         ? selected.filter((name) => name !== item)
-        : [...selected, item]
-    );
-  }
+        : [...selected, item]);
+    }
   
   return (
     <div className="dashboard-layout">
-
-
-
-
       <Sidebar onLogout={onLogout} />
 
       <main className="main-content">
@@ -41,14 +36,14 @@ function Reservation({ onLogout }) {
         <ul> {/* hardcoded muna ang mga numbers but lets say 5 ang nasa storage the numbers should go down when (selected) submitted na ang request*/}
           {items.map((item) => (
             <li key={item}>
-            <label><input type="checkbox" 
-              checked={selectedItems.includes(item)} 
-              onChange={() => toggleItem(item)}></input>
-            </label>
-            {item} ({Items_available})
-              </li>
-          ))}
+              <label><input type="checkbox" 
+                checked={selectedItems.includes(item)} 
+                onChange={() => toggleItem(item)}></input>
+              </label>
+                {item} ({Items_available})
+            </li>))}
         </ul>
+
         <button>Submit</button> {/*send request then dapat ma approve san Admin*/}
 
       </main>

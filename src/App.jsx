@@ -9,7 +9,6 @@ import {
 import Dashboard from "./pages/Dashboard";
 import Reservation from "./pages/Reservation";
 import SignIn from "./pages/Signin";
-import Equipment from "./pages/Equipment";
 import Login from "./pages/Login";
 
 function App() {
@@ -44,12 +43,7 @@ function AppRoutes() {
         }
       />
 
-      <Route
-        path="/equipment"
-        element={
-          <Equipment onLogout={handleLogout} />
-        }
-      />
+
 
       <Route
         path="/login"
