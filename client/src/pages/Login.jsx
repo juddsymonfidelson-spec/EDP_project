@@ -32,7 +32,11 @@ function Login() {
         localStorage.setItem("username", data.user.username);
 
         alert("Login successful!");
+
+
         navigate("/dashboard"); // Redirects directly to Dashboard layout
+                                // create a handle for the admin login
+
       } else {
         alert(data.error || "Invalid login credentials.");
       }
