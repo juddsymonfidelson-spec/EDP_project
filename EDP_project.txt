@@ -1,0 +1,81 @@
+EDP_project/                                      ← Repo Root (Git lives here)
+│
+├── .git/
+├── .gitattributes
+├── .gitignore                                    ← Updated (ignores .env, node_modules)
+├── README.md
+│
+├── client/                                       ← FRONTEND (React + Vite)
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package.json                              ← Frontend dependencies
+│   ├── package-lock.json
+│   ├── vite.config.js
+│   │
+│   ├── public/
+│   │   ├── favicon.svg
+│   │   └── icons.svg
+│   │
+│   └── src/
+│       ├── main.jsx                              ← React entry point
+│       ├── App.jsx                               ← Root Router (Needs Admin routes added)
+│       ├── App.css                               ← Global styles
+│       │
+│       ├── assets/                               ← Images/fonts
+│       │   ├── hero.png
+│       │   ├── react.svg
+│       │   └── vite.svg
+│       │
+│       ├── components/
+│       │   ├── Sidebar.jsx                       ← Groupmate's component
+│       │   └── AdminSidebar.jsx                  ← Mark's Admin Sidebar
+│       │
+│       ├── layouts/
+│       │   └── AdminLayout.jsx                   ← Mark's Admin Wrapper (Sidebar + Main)
+│       │
+│       ├── pages/
+│       │   ├── Login.jsx                         ← Judd's shared login
+│       │   ├── Signin.jsx                        ← Judd's registration
+│       │   │
+│       │   ├── client/                           ← Judd's pages namespace
+│       │   │   ├── Dashboard.jsx
+│       │   │   └── Reservation.jsx
+│       │   │
+│       │   └── admin/                            ←  Mark's Admin Pages
+│       │       ├── Dashboard.jsx                 ← (Currently empty scaffold)
+│       │       ├── History.jsx                   ← (Currently empty scaffold)
+│       │       ├── ManageItems.jsx               ← (Currently empty scaffold)
+│       │       └── ManageReservations.jsx        ← (Currently empty scaffold)
+│       │
+│       ├── services/
+│       │   └── api.js                            ← Mark's Axios instance (x-user-role header)
+│       │
+│       └── styles/
+│           ├── admin.css                         ← Mark's Admin styles
+│           └── client.css                        ← Judd's styles
+│
+└── tlc-equiphub-server/                          ←  BACKEND (Node + Express + MySQL)
+    ├── index.js                                  ← Entry (starts server, registers routes)
+    ├── package.json                              ← Backend dependencies (added nodemailer)
+    ├── package-lock.json
+    ├── tlc_equiphub_db.sql                       ← Database schema for groupmate to import
+    │
+    ├── .env                                      ← ⚠️ Local only (ignored by Git)
+    ├── .env.example                              ← (If you made one)
+    │
+    ├── config/
+    │   └── db.js                                 ← MySQL Pool + Legacy connection
+    │
+    ├── middleware/
+    │   └── checkAdmin.js                         ←  x-user-role header guard (If you created it)
+    │
+    ├── controllers/
+    │   ├── itemController.js                     ← Item CRUD logic
+    │   └── reservationController.js              ← Accept/Decline/Cancel/Stats logic
+    │
+    ├── routes/
+    │   ├── itemRoutes.js                         ← /api/admin/items endpoints
+    │   └── reservationRoutes.js                  ← /api/admin/reservations endpoints
+    │
+    └── utils/
+        └── mailer.js                             ← Nodemailer (Emails)

@@ -9,32 +9,33 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Create Database Connection
+// =====================================================
+// 1. LEGACY DATABASE (for groupmate's login/register)
+// =====================================================
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '', // Leave blank if you are using default XAMPP
-  database: 'tlc equiphub_db'
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'tlc equiphub_db'
 });
 
-// Connect to MySQL
 db.connect((err) => {
-  if (err) {
-    console.error('Database connection failed: ' + err.stack);
-    return;
-  }
-  console.log('Connected to tlc equiphub_db successfully!');
+  if (err) console.error('Database connection failed: ' + err.stack);
+  else console.log('✅ Connected to tlc equiphub_db successfully!');
 });
 
-const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// =====================================================
+// 2. ADMIN ROUTES (Your work)
+// =====================================================
+const itemRoutes = require('./routes/itemRoutes');
+const reservationRoutes = require('./routes/reservationRoutes');
 
+app.use('/api/admin/items', itemRoutes);
+app.use('/api/admin/reservations', reservationRoutes);
 
-
-
-// save signin info to database
+// =====================================================
+// 3. GROUP MATE ROUTES (Preserved but updated for your schema)
+// =====================================================
 app.post('/api/register', (req, res) => {
   const { username, email, password, role } = req.body;
 
@@ -42,7 +43,8 @@ app.post('/api/register', (req, res) => {
     return res.status(400).json({ error: "All fields are required" });
   }
 
-  const sql = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
+  // Note the backticks around UserName, Email, Password to match your table
+  const sql = "INSERT INTO users (`UserName`, `Email`, `Password`, `role`) VALUES (?, ?, ?, ?)";
   db.query(sql, [username, email, password, role], (err, result) => {
     if (err) {
       console.error("SQL Registration Error:", err);
@@ -52,7 +54,6 @@ app.post('/api/register', (req, res) => {
   });
 });
 
-//login route
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -60,7 +61,8 @@ app.post('/api/login', (req, res) => {
     return res.status(400).json({ error: "All fields are required" });
   }
 
-  const sql = "SELECT * FROM users WHERE email = ? AND password = ?";
+  // Note the backticks around Email and Password
+  const sql = "SELECT * FROM users WHERE `Email` = ? AND `Password` = ?";
   db.query(sql, [email, password], (err, results) => {
     if (err) {
       console.error("SQL Login Error:", err);
@@ -68,18 +70,22 @@ app.post('/api/login', (req, res) => {
     }
 
     if (results.length > 0) {
-      // User found matching credentials
       const user = results[0];
+      // Return the correct column names so React can use them
       res.status(200).json({ 
         message: "Login successful!", 
-        user: { id: user.id, username: user.username, role: user.role } 
+        user: { id: user.ID, username: user.UserName, role: user.role } 
       });
     } else {
-      // No match found
-      res.status(401).json({ error: "Invalid email or password configuration" });
+      res.status(401).json({ error: "Invalid email or password" });
     }
   });
 });
 
-
-
+// =====================================================
+// 4. START SERVER (Always at the bottom)
+// =====================================================
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
