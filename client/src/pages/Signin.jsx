@@ -12,7 +12,7 @@ function Register() {
   const handleSignUpSubmit = async (e) => {
     e.preventDefault();
 
-    // 🔒 The role is hardcoded to "student" securely on submission
+
     const userData = {
       username: username, 
       email: email,

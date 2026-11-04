@@ -8,7 +8,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // 2. The login submit function handles communication with your database
+  // 2. The login submit function handles communication with the database
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
 

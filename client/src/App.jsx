@@ -6,8 +6,8 @@ import {
   useNavigate
 } from "react-router-dom";
 
-import Dashboard from "./pages/Dashboard";
-import Reservation from "./pages/Reservation";
+import Dashboard from "./pages/client/Dashboard";
+import Reservation from "./pages/client/Reservation";
 import SignIn from "./pages/Signin";
 import Login from "./pages/Login";
 
