@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 06, 2026 at 04:54 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Generation Time: Nov 03, 2026 at 03:43 PM
+-- Server version: 10.11.16-MariaDB
+-- PHP Version: 8.4.27
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,31 +18,49 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `tlc equiphub_db`
+-- Database: `tlc_equiphub_db`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `equipment`
+-- Table structure for table `items`
 --
 
-CREATE TABLE `equipment` (
-  `ID` int(11) NOT NULL,
-  `equipment_Name` varchar(255) NOT NULL,
-  `total_in_Storage` int(11) NOT NULL,
-  `current_in_Storage` int(11) NOT NULL
+CREATE TABLE `items` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `category` varchar(50) NOT NULL,
+  `stock` int(11) NOT NULL DEFAULT 0,
+  `description` text DEFAULT NULL,
+  `image_url` varchar(255) DEFAULT NULL,
+  `is_available` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `equipment`
+-- Dumping data for table `items`
 --
 
-INSERT INTO `equipment` (`ID`, `equipment_Name`, `total_in_Storage`, `current_in_Storage`) VALUES
-(1, 'Projector', 10, 10),
-(2, 'Small Whiteboard ', 5, 5),
-(3, 'Big Electricfan', 3, 3),
-(4, 'Monoblock chairs', 321, 321);
+INSERT INTO `items` (`id`, `name`, `category`, `stock`, `description`, `image_url`, `is_available`, `created_at`) VALUES
+(1, 'Epson Projector X12', 'Audio & Visual', 5, 'Full HD projector with HDMI input', NULL, 1, '2026-11-03 13:43:03'),
+(2, 'JBL Sound System', 'Audio & Visual', 3, 'Portable PA system with wireless mic', NULL, 1, '2026-11-03 13:43:03'),
+(3, 'Monobloc Chair', 'Furniture & Setup', 100, 'White plastic stackable chair', NULL, 1, '2026-11-03 13:43:03');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `messages`
+--
+
+CREATE TABLE `messages` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `reservation_id` int(11) DEFAULT NULL,
+  `subject` varchar(150) DEFAULT NULL,
+  `body` text DEFAULT NULL,
+  `sent_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -51,13 +69,16 @@ INSERT INTO `equipment` (`ID`, `equipment_Name`, `total_in_Storage`, `current_in
 --
 
 CREATE TABLE `reservations` (
-  `ID` int(11) NOT NULL,
-  `UserID` int(11) NOT NULL,
-  `Equipment_ID` int(11) NOT NULL,
-  `Quantity_requested` int(11) NOT NULL,
-  `Status` varchar(50) NOT NULL DEFAULT 'pending',
-  `Borrow_time` time NOT NULL,
-  `Return_time` time NOT NULL
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `item_id` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `status` enum('Pending','Accepted','Declined','Cancelled','Returned') DEFAULT 'Pending',
+  `decline_reason` text DEFAULT NULL,
+  `notified` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -71,7 +92,7 @@ CREATE TABLE `users` (
   `UserName` varchar(100) NOT NULL,
   `Email` varchar(100) NOT NULL,
   `Password` varchar(255) NOT NULL,
-  `role` varchar(20) NOT NULL
+  `role` varchar(20) NOT NULL DEFAULT 'client'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -80,23 +101,35 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`ID`, `UserName`, `Email`, `Password`, `role`) VALUES
 (2, 'Zennie', 'Zennie@gmail.com', '979764643131', 'faculty'),
-(3, 'Mandie', 'mandie@thelewiscollege.edu.ph', '646419558', 'student');
+(3, 'Mandie', 'mandie@thelewiscollege.edu.ph', '646419558', 'student'),
+(4, 'admin', 'admin@tlc.edu.ph', 'admin123', 'admin'),
+(5, 'Juan Dela Cruz', 'juan@tlc.edu.ph', 'juan123', 'client');
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `equipment`
+-- Indexes for table `items`
 --
-ALTER TABLE `equipment`
-  ADD PRIMARY KEY (`ID`);
+ALTER TABLE `items`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_msg_user` (`user_id`),
+  ADD KEY `fk_msg_res` (`reservation_id`);
 
 --
 -- Indexes for table `reservations`
 --
 ALTER TABLE `reservations`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_res_user` (`user_id`),
+  ADD KEY `fk_res_item` (`item_id`);
 
 --
 -- Indexes for table `users`
@@ -109,22 +142,46 @@ ALTER TABLE `users`
 --
 
 --
--- AUTO_INCREMENT for table `equipment`
+-- AUTO_INCREMENT for table `items`
 --
-ALTER TABLE `equipment`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+ALTER TABLE `items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `reservations`
 --
 ALTER TABLE `reservations`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `messages`
+--
+ALTER TABLE `messages`
+  ADD CONSTRAINT `fk_msg_res` FOREIGN KEY (`reservation_id`) REFERENCES `reservations` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_msg_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`ID`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `reservations`
+--
+ALTER TABLE `reservations`
+  ADD CONSTRAINT `fk_res_item` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_res_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`ID`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
