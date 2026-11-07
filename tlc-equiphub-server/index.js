@@ -10,22 +10,38 @@ app.use(cors());
 app.use(express.json());
 
 // =====================================================
-// 1. LEGACY DATABASE (for groupmate's login/register)
+// 1. COMPATIBLE DATABASE POOL
 // =====================================================
-const db = mysql.createConnection({
+const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'tlc equiphub_db'
+  database: process.env.DB_NAME || 'tlc_equiphub_db',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-db.connect((err) => {
-  if (err) console.error('Database connection failed: ' + err.stack);
-  else console.log('✅ Connected to tlc equiphub_db successfully!');
+// MOVE EXPORTS HERE
+module.exports = { 
+  db: pool.promise(), 
+  pool: pool 
+};
+
+// Test connection using standard callbacks
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.error('❌ Database connection pool failed: ' + err.message);
+  } else {
+    console.log('✅ Connected to tlc_equiphub_db connection pool successfully!');
+    connection.release();
+  }
 });
+
+const db = pool; 
 
 // =====================================================
-// 2. ADMIN ROUTES (Your work)
+// 2. ROUTES SETUP
 // =====================================================
 const itemRoutes = require('./routes/itemRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
@@ -33,17 +49,17 @@ const reservationRoutes = require('./routes/reservationRoutes');
 app.use('/api/admin/items', itemRoutes);
 app.use('/api/admin/reservations', reservationRoutes);
 
+//  PUBLIC USER PATHWAY
+app.get('/api/users/items', require('./controllers/itemController').getAllItems);
+app.post('/api/users/reservations', require('./controllers/reservationController').createReservation);
 // =====================================================
-// 3. GROUP MATE ROUTES (Preserved but updated for your schema)
+// 3. GROUP MATE ROUTES (Preserved callback paths)
 // =====================================================
 app.post('/api/register', (req, res) => {
   const { username, email, password, role } = req.body;
-
   if (!username || !email || !password || !role) {
     return res.status(400).json({ error: "All fields are required" });
   }
-
-  // Note the backticks around UserName, Email, Password to match your table
   const sql = "INSERT INTO users (`UserName`, `Email`, `Password`, `role`) VALUES (?, ?, ?, ?)";
   db.query(sql, [username, email, password, role], (err, result) => {
     if (err) {
@@ -56,22 +72,17 @@ app.post('/api/register', (req, res) => {
 
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
-
   if (!email || !password) {
     return res.status(400).json({ error: "All fields are required" });
   }
-
-  // Note the backticks around Email and Password
   const sql = "SELECT * FROM users WHERE `Email` = ? AND `Password` = ?";
   db.query(sql, [email, password], (err, results) => {
     if (err) {
       console.error("SQL Login Error:", err);
       return res.status(500).json({ error: "Database login query failed" });
     }
-
     if (results.length > 0) {
       const user = results[0];
-      // Return the correct column names so React can use them
       res.status(200).json({ 
         message: "Login successful!", 
         user: { id: user.ID, username: user.UserName, role: user.role } 

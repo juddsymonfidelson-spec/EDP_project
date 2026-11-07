@@ -1,6 +1,19 @@
-const { db, pool } = require('../config/db');
-const { sendEmail } = require('../utils/mailer');
+const { db, pool } = require('../index'); 
+const { sendEmail } = require('../config/db');
 
+const createReservation = async (req, res) => {
+  try {
+    const { user_id, item_id, quantity, start_date, end_date } = req.body;
+    await db.query(
+      'INSERT INTO reservations (user_id, item_id, quantity, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, ?)',
+      [user_id, item_id, quantity, start_date, end_date, 'Pending']
+    );
+    res.status(201).json({ message: 'Reservation requested successfully!' });
+  } catch (err) {
+    console.error("Database Reservation Insert Error:", err);
+    res.status(500).json({ error: err.message });
+ }
+};
 const getAllReservations = async (req, res) => {
   try {
     const { status, search = '' } = req.query;
@@ -108,4 +121,4 @@ const cancelReservation = async (req, res) => {
   } finally { conn.release(); }
 };
 
-module.exports = { getAllReservations, getStats, acceptReservation, declineReservation, cancelReservation };
+module.exports = { getAllReservations, getStats, acceptReservation, declineReservation, cancelReservation, createReservation };

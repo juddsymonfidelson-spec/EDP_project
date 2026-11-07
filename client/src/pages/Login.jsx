@@ -27,13 +27,12 @@ function Login() {
       const data = await response.json();
       
       if (response.ok) {
+        localStorage.setItem("user", JSON.stringify(data.user));
         // Save the logged-in user profile info locally if needed
         localStorage.setItem("userRole", data.user.role);
         localStorage.setItem("username", data.user.username);
 
         alert("Login successful!");
-
-
         navigate("/dashboard"); // Redirects directly to Dashboard layout
                                 // create a handle for the admin login
 

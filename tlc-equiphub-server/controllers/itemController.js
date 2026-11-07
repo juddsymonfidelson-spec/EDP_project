@@ -1,4 +1,4 @@
-const { db } = require('../config/db');
+const { db } = require('../index');
 
 const getAllItems = async (req, res) => {
   try {
