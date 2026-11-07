@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.3
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 03, 2026 at 03:43 PM
--- Server version: 10.11.16-MariaDB
--- PHP Version: 8.4.27
+-- Generation Time: Nov 07, 2026 at 12:40 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -43,9 +43,9 @@ CREATE TABLE `items` (
 --
 
 INSERT INTO `items` (`id`, `name`, `category`, `stock`, `description`, `image_url`, `is_available`, `created_at`) VALUES
-(1, 'Epson Projector X12', 'Audio & Visual', 5, 'Full HD projector with HDMI input', NULL, 1, '2026-11-03 13:43:03'),
+(1, 'Projector ', 'Audio & Visual', 5, 'Full HD projector with HDMI input', NULL, 1, '2026-11-03 13:43:03'),
 (2, 'JBL Sound System', 'Audio & Visual', 3, 'Portable PA system with wireless mic', NULL, 1, '2026-11-03 13:43:03'),
-(3, 'Monobloc Chair', 'Furniture & Setup', 100, 'White plastic stackable chair', NULL, 1, '2026-11-03 13:43:03');
+(3, 'Monoblock Chair', 'Furniture & Setup', 350, 'White plastic stackable chair', NULL, 1, '2026-11-03 13:43:03');
 
 -- --------------------------------------------------------
 
@@ -81,6 +81,13 @@ CREATE TABLE `reservations` (
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `reservations`
+--
+
+INSERT INTO `reservations` (`id`, `user_id`, `item_id`, `quantity`, `start_date`, `end_date`, `status`, `decline_reason`, `notified`, `created_at`) VALUES
+(1, 6, 3, 5, '2026-11-06', '2026-11-07', 'Pending', NULL, 0, '2026-11-07 02:52:10');
+
 -- --------------------------------------------------------
 
 --
@@ -103,7 +110,8 @@ INSERT INTO `users` (`ID`, `UserName`, `Email`, `Password`, `role`) VALUES
 (2, 'Zennie', 'Zennie@gmail.com', '979764643131', 'faculty'),
 (3, 'Mandie', 'mandie@thelewiscollege.edu.ph', '646419558', 'student'),
 (4, 'admin', 'admin@tlc.edu.ph', 'admin123', 'admin'),
-(5, 'Juan Dela Cruz', 'juan@tlc.edu.ph', 'juan123', 'client');
+(5, 'Juan Dela Cruz', 'juan@tlc.edu.ph', 'juan123', 'client'),
+(6, 'aamon', 'A@gmail.com', '12321', 'student');
 
 --
 -- Indexes for dumped tables
@@ -157,13 +165,13 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT for table `reservations`
 --
 ALTER TABLE `reservations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables
