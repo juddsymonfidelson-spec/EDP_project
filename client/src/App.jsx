@@ -11,6 +11,15 @@ import Reservation from "./pages/client/Reservation";
 import SignIn from "./pages/Signin";
 import Login from "./pages/Login";
 
+
+import AdminLayout from "./layouts/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import ManageItems from "./pages/admin/ManageItems";
+import ManageReservations from "./pages/admin/ManageReservations";
+import History from "./pages/admin/History";
+
+
+
 function App() {
   return (
     <BrowserRouter>
@@ -64,6 +73,16 @@ function AppRoutes() {
         }
       />
 
+        {/* Admin Routes */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="items" element={<ManageItems />} />
+        <Route path="reservations" element={<ManageReservations />} />
+        <Route path="history" element={<History />} />
+      </Route>
+
+      
     </Routes>
   );
 }

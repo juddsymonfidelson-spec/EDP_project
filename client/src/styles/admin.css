@@ -1,0 +1,42 @@
+/* =========================================
+   DASHBOARD SPECIFIC STYLES
+   ========================================= */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card-icon {
+  margin-bottom: 15px;
+}
+
+.card h3 {
+  font-size: 2rem;
+  margin: 0 0 5px 0;
+  color: #1f2937;
+}
+
+.card p {
+  color: #6b7280;
+  margin: 0;
+  font-weight: 500;
+}

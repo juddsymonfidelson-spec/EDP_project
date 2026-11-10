@@ -33,8 +33,12 @@ function Login() {
         localStorage.setItem("username", data.user.username);
 
         alert("Login successful!");
-        navigate("/dashboard"); // Redirects directly to Dashboard layout
-                                // create a handle for the admin login
+        // Check the role from the response
+        if (data.user.role === 'admin') {
+          navigate("/admin/dashboard"); // Redirect Admin to their page
+        } else {
+          navigate("/dashboard");       // Redirect Client to their page
+        }
 
       } else {
         alert(data.error || "Invalid login credentials.");

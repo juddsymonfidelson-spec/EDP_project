@@ -1,25 +1,20 @@
-const nodemailer = require('nodemailer');
-require('dotenv').config();
+const mysql = require('mysql2');
+const dotenv = require('dotenv');
+dotenv.config();
 
-const sendEmail = async (to, subject, html) => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.log(`📧 (Skipped) Would send to ${to}: ${subject}`);
-    return;
-  }
+// 1. Create the connection pool
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'tlc_equiphub_db',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
-  try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-    });
-    await transporter.sendMail({
-      from: `"TLC EquipAdmin" <${process.env.EMAIL_USER}>`,
-      to, subject, html
-    });
-    console.log(`✅ Email sent to ${to}`);
-  } catch (err) {
-    console.error(`❌ Email error:`, err.message);
-  }
-};
+// 2. Create the promise-based wrapper
+const db = pool.promise();
 
-module.exports = { sendEmail };
+// 3. Export both
+module.exports = { db, pool };

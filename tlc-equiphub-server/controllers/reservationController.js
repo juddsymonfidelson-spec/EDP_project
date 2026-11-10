@@ -1,19 +1,9 @@
-const { db, pool } = require('../index'); 
-const { sendEmail } = require('../config/db');
+const { db, pool } = require('../config/db'); // Correct path
+const { sendEmail } = require('../utils/mailer'); // Correct path
 
-const createReservation = async (req, res) => {
-  try {
-    const { user_id, item_id, quantity, start_date, end_date } = req.body;
-    await db.query(
-      'INSERT INTO reservations (user_id, item_id, quantity, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, ?)',
-      [user_id, item_id, quantity, start_date, end_date, 'Pending']
-    );
-    res.status(201).json({ message: 'Reservation requested successfully!' });
-  } catch (err) {
-    console.error("Database Reservation Insert Error:", err);
-    res.status(500).json({ error: err.message });
- }
-};
+// ==========================================
+// GET FUNCTIONS
+// ==========================================
 const getAllReservations = async (req, res) => {
   try {
     const { status, search = '' } = req.query;
@@ -44,6 +34,9 @@ const getStats = async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
+// ==========================================
+// ACTION FUNCTIONS
+// ==========================================
 const acceptReservation = async (req, res) => {
   const { id } = req.params;
   const conn = await pool.promise().getConnection();
@@ -121,4 +114,43 @@ const cancelReservation = async (req, res) => {
   } finally { conn.release(); }
 };
 
-module.exports = { getAllReservations, getStats, acceptReservation, declineReservation, cancelReservation, createReservation };
+// ==========================================
+// NOTIFICATION FUNCTIONS
+// ==========================================
+const sendReminder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [[resv]] = await db.query(
+      `SELECT r.*, i.name AS item_name, u.Email AS email, u.UserName AS full_name FROM reservations r JOIN items i ON r.item_id = i.id JOIN users u ON r.user_id = u.ID WHERE r.id = ?`, [id]
+    );
+    if (!resv) return res.status(404).json({ error: 'Reservation not found' });
+
+    if (resv.email) {
+      await sendEmail(resv.email, 'Return Reminder ⏰', `<p>Hi <b>${resv.full_name}</b>,</p><p>This is a reminder that your reservation for <b>${resv.item_name}</b> is due on <b>${resv.end_date}</b>.</p>`);
+    }
+    res.json({ message: 'Reminder sent' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+};
+
+const sendMessage = async (req, res) => {
+  try {
+    const { userId, reservationId, subject, body } = req.body;
+    const [[user]] = await db.query('SELECT * FROM users WHERE ID = ?', [userId]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (user.Email) {
+      await sendEmail(user.Email, subject, `<p>${body}</p><br/><p>— TLC Campus EquipAdmin</p>`);
+    }
+    res.json({ message: 'Message sent' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+};
+
+module.exports = { 
+  getAllReservations, 
+  getStats, 
+  acceptReservation, 
+  declineReservation, 
+  cancelReservation, 
+  sendReminder,
+  sendMessage
+};

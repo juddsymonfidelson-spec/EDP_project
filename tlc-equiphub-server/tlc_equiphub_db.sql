@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 10, 2026 at 11:46 AM
+-- Generation Time: Nov 10, 2026 at 01:07 PM
 -- Server version: 10.11.16-MariaDB
 -- PHP Version: 8.4.27
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `tlc equiphub_db`
+-- Database: `tlc_equiphub_db`
 --
 
 -- --------------------------------------------------------
@@ -43,7 +43,7 @@ CREATE TABLE `items` (
 --
 
 INSERT INTO `items` (`id`, `name`, `category`, `stock`, `description`, `image_url`, `is_available`, `created_at`) VALUES
-(1, 'Epson Projector X12', 'Audio & Visual', 5, 'Full HD projector with HDMI input', NULL, 1, '2026-11-03 13:43:03'),
+(1, 'Epson Projector X12', 'Audio & Visual', 3, 'Full HD projector with HDMI input', NULL, 1, '2026-11-03 13:43:03'),
 (2, 'JBL Sound System', 'Audio & Visual', 3, 'Portable PA system with wireless mic', NULL, 1, '2026-11-03 13:43:03'),
 (3, 'Monobloc Chair', 'Furniture & Setup', 100, 'White plastic stackable chair', NULL, 1, '2026-11-03 13:43:03');
 
@@ -80,6 +80,13 @@ CREATE TABLE `reservations` (
   `notified` tinyint(1) DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ;
+
+--
+-- Dumping data for table `reservations`
+--
+
+INSERT INTO `reservations` (`id`, `user_id`, `item_id`, `quantity`, `start_date`, `end_date`, `status`, `decline_reason`, `notified`, `created_at`) VALUES
+(1, 2, 1, 2, '2026-11-20', '2026-11-22', 'Accepted', NULL, 0, '2026-11-10 11:55:25');
 
 -- --------------------------------------------------------
 
