@@ -1,9 +1,9 @@
 const { db, pool } = require('../config/db'); // Correct path
 const { sendEmail } = require('../utils/mailer'); // Correct path
 
-// ==========================================
+
 // GET FUNCTIONS
-// ==========================================
+
 const getAllReservations = async (req, res) => {
   try {
     const { status, search = '' } = req.query;
@@ -62,7 +62,7 @@ const acceptReservation = async (req, res) => {
     await conn.commit();
 
     if (resv.email) {
-      await sendEmail(resv.email, 'Reservation Accepted ✅', `<p>Hi <b>${resv.full_name}</b>,</p><p>Your reservation for <b>${resv.item_name}</b> (${resv.quantity} pcs) is ACCEPTED.</p>`);
+      await sendEmail(resv.email, 'Reservation Accepted', `<p>Hi <b>${resv.full_name}</b>,</p><p>Your reservation for <b>${resv.item_name}</b> (${resv.quantity} pcs) is ACCEPTED.</p>`);
     }
     res.json({ message: 'Accepted' });
   } catch (err) {
@@ -82,7 +82,7 @@ const declineReservation = async (req, res) => {
 
     await db.query('UPDATE reservations SET status = ?, decline_reason = ? WHERE id = ?', ['Declined', reason, id]);
     if (resv.email) {
-      await sendEmail(resv.email, 'Reservation Declined ❌', `<p>Hi <b>${resv.full_name}</b>,</p><p>Your reservation for <b>${resv.item_name}</b> was DECLINED.</p><p>Reason: ${reason}</p>`);
+      await sendEmail(resv.email, 'Reservation Declined', `<p>Hi <b>${resv.full_name}</b>,</p><p>Your reservation for <b>${resv.item_name}</b> was DECLINED.</p><p>Reason: ${reason}</p>`);
     }
     res.json({ message: 'Declined' });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -90,7 +90,9 @@ const declineReservation = async (req, res) => {
 
 const cancelReservation = async (req, res) => {
   const { id } = req.params;
-  const { reason = 'Cancelled by admin' } = req.body;
+  // Reason is optional. If client doesn't send one, it defaults to null.
+  const { reason = null } = req.body; 
+  
   const conn = await pool.promise().getConnection();
   try {
     await conn.beginTransaction();
@@ -101,11 +103,14 @@ const cancelReservation = async (req, res) => {
 
     await conn.query('UPDATE items SET stock = stock + ? WHERE id = ?', [resv.quantity, resv.item_id]);
     await conn.query('UPDATE items SET is_available = TRUE WHERE id = ?', [resv.item_id]);
+    
+    // Save reason (can be null)
     await conn.query('UPDATE reservations SET status = ?, decline_reason = ? WHERE id = ?', ['Cancelled', reason, id]);
+    
     await conn.commit();
 
     if (resv.email) {
-      await sendEmail(resv.email, 'Reservation Cancelled ⚠️', `<p>Hi <b>${resv.full_name}</b>,</p><p>Your reservation for <b>${resv.item_name}</b> was CANCELLED.</p><p>Reason: ${reason}</p>`);
+      await sendEmail(resv.email, 'Reservation Cancelled ', `<p>Hi <b>${resv.full_name}</b>,</p><p>Your reservation for <b>${resv.item_name}</b> was CANCELLED.</p>${reason ? `<p>Reason: ${reason}</p>` : ''}`);
     }
     res.json({ message: 'Cancelled' });
   } catch (err) {
@@ -113,7 +118,6 @@ const cancelReservation = async (req, res) => {
     res.status(400).json({ error: err.message });
   } finally { conn.release(); }
 };
-
 // ==========================================
 // NOTIFICATION FUNCTIONS
 // ==========================================

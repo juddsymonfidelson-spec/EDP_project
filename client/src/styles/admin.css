@@ -1,42 +1,306 @@
 /* =========================================
-   DASHBOARD SPECIFIC STYLES
+   TLC ADMIN DESIGN SYSTEM (JetBrains Mono)
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary: #0ea5e9;
+  --bg-color: #f1f5f9;
+  --sidebar-bg: #0f172a;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Force full screen and set font */
+body, html, #root {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  overflow: hidden !important;
+  background-color: var(--bg-color) !important;
+  font-family: var(--font-mono) !important;
+}
+
+* { 
+  box-sizing: border-box; 
+  font-family: var(--font-mono);
+}
+
+/* =========================================
+   MAIN LAYOUT
+   ========================================= */
+.admin-layout {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+/* =========================================
+   SIDEBAR
+   ========================================= */
+.admin-sidebar {
+  width: 260px;
+  min-width: 260px;
+  background-color: var(--sidebar-bg);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  justify-content: space-between; 
+}
+
+.sidebar-brand {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.brand-icon {
+  background-color: var(--primary);
+  color: white;
+  width: 35px;
+  height: 35px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 20px 12px;
+  margin: 0;
+  flex: 1;
+}
+
+.sidebar-menu li { margin-bottom: 5px; }
+
+.sidebar-menu li a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #94a3b8;
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.sidebar-menu li a:hover, 
+.sidebar-menu li a.active {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* =========================================
+   TOPBAR & CONTENT
+   ========================================= */
+.admin-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-color);
+}
+
+.admin-topbar {
+  height: 70px;
+  min-height: 70px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 0.9rem;
+}
+
+.admin-scroll-area {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+}
+
+.admin-scroll-area h1 {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+/* =========================================
+   DASHBOARD CARDS
    ========================================= */
 .dashboard-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+  width: 100%;
+  margin-bottom: 30px;
 }
 
 .card {
   background: white;
-  border-radius: 12px;
-  padding: 25px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  transition: transform 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-5px);
+  padding: 30px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
 }
 
 .card-icon {
+  padding: 12px;
+  border-radius: 10px;
+  display: inline-block;
   margin-bottom: 15px;
 }
 
 .card h3 {
-  font-size: 2rem;
+  font-size: 2.5rem;
   margin: 0 0 5px 0;
-  color: #1f2937;
+  color: var(--text-main);
 }
 
 .card p {
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0;
   font-weight: 500;
+  font-size: 0.85rem;
 }
+
+/* =========================================
+   FORMS & INPUTS
+   ========================================= */
+.admin-form {
+  background: white;
+  padding: 35px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  margin-bottom: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr; 
+  gap: 20px;
+  width: 100%;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.admin-form input, 
+.admin-form textarea {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  background-color: #f8fafc;
+  transition: all 0.2s;
+}
+
+.admin-form input:focus, 
+.admin-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: white;
+}
+
+/* =========================================
+   TABLES (Fixed Column Widths)
+   ========================================= */
+.admin-table-container {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px; /* Increased to give more room */
+}
+
+.admin-table th, 
+.admin-table td {
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+  vertical-align: middle; 
+}
+
+/* Force text to wrap only in Description and Reason */
+.admin-table td {
+  white-space: normal; 
+  word-wrap: break-word;
+}
+
+.admin-table th {
+  background-color: #f8fafc;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  white-space: nowrap; /* Keep headers on one line */
+}
+
+.admin-table td {
+  color: var(--text-main);
+}
+
+/* Keep Status badges on one line */
+.admin-table td .badge {
+  white-space: nowrap;
+}
+
+/* Ensure action buttons don't wrap */
+.admin-table td:last-child {
+  white-space: nowrap;
+  width: 1%; /* Shrinks the actions column to its minimum size */
+}
+/* =========================================
+   BUTTONS & BADGES
+   ========================================= */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.btn-primary { background-color: var(--primary); }
+.btn-danger { background-color: var(--danger); }
+.btn-success { background-color: var(--success); }
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+.badge-available { background-color: #dcfce7; color: #166534; }
+.badge-unavailable { background-color: #fee2e2; color: #991b1b; }

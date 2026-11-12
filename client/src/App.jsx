@@ -16,7 +16,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 import ManageItems from "./pages/admin/ManageItems";
 import ManageReservations from "./pages/admin/ManageReservations";
-import History from "./pages/admin/History";
+import Transactions from "./pages/admin/Transactions";
 
 
 
@@ -79,7 +79,7 @@ function AppRoutes() {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="items" element={<ManageItems />} />
         <Route path="reservations" element={<ManageReservations />} />
-        <Route path="history" element={<History />} />
+        <Route path="transactions" element={<Transactions />} />
       </Route>
 
       
