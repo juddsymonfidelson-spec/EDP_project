@@ -51,10 +51,6 @@ export default function ManageReservations() {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  };
-
   return (
     <div>
       <h1 style={{ fontSize: '2rem', color: '#1e293b', marginBottom: '30px' }}>Pending Reservations</h1>
@@ -65,13 +61,20 @@ export default function ManageReservations() {
         <table className="admin-table">
           <thead>
             <tr>
-              <th>ID</th><th>Client</th><th>Item</th><th>Qty</th><th>Start Date</th><th>End Date</th><th>Actions</th>
+              <th>ID</th>
+              <th>Client</th>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Date</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {reservations.length === 0 ? (
               <tr>
-                <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
                   No pending requests at the moment.
                 </td>
               </tr>
@@ -88,8 +91,9 @@ export default function ManageReservations() {
                   <td style={{ fontWeight: '500' }}>{r.client_name}</td>
                   <td>{r.item_name}</td>
                   <td>{r.quantity}</td>
-                  <td>{formatDate(r.start_date)}</td>
-                  <td>{formatDate(r.end_date)}</td>
+                  <td>{r.reservation_date ? new Date(r.reservation_date).toLocaleDateString() : '—'}</td>
+                  <td>{r.start_time ? r.start_time.substring(0, 5) : '—'}</td>
+                  <td>{r.end_time ? r.end_time.substring(0, 5) : '—'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button className="btn btn-success" onClick={() => handleAccept(r.id)} style={{ padding: '8px 14px' }}>Accept</button>

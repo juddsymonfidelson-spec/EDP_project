@@ -42,27 +42,51 @@ const acceptReservation = async (req, res) => {
   const conn = await pool.promise().getConnection();
   try {
     await conn.beginTransaction();
+    
+    // 1. Fetch the reservation using the NEW column names
     const [[resv]] = await conn.query(
-      `SELECT r.*, i.stock, i.name AS item_name, u.Email AS email, u.UserName AS full_name FROM reservations r JOIN items i ON r.item_id = i.id JOIN users u ON r.user_id = u.ID WHERE r.id = ?`, [id]
+      `SELECT r.*, i.stock, i.name AS item_name, u.Email AS email, u.UserName AS full_name 
+       FROM reservations r 
+       JOIN items i ON r.item_id = i.id 
+       JOIN users u ON r.user_id = u.ID 
+       WHERE r.id = ?`, 
+      [id]
     );
+    
     if (!resv) throw new Error('Reservation not found');
     if (resv.status !== 'Pending') throw new Error('Only pending can be accepted');
     
+    // 2. Check for overlaps using Date, Start Time, and End Time
     const [overlap] = await conn.query(
-      `SELECT id FROM reservations WHERE item_id = ? AND status = 'Accepted' AND id != ? AND start_date <= ? AND end_date >= ?`,
-      [resv.item_id, id, resv.end_date, resv.start_date]
+      `SELECT id FROM reservations 
+       WHERE item_id = ? 
+         AND status = 'Accepted' 
+         AND id != ? 
+         AND reservation_date = ? 
+         AND (start_time < ? AND end_time > ?)`,
+      [resv.item_id, id, resv.reservation_date, resv.end_time, resv.start_time]
     );
-    if (overlap.length > 0) throw new Error('Item already reserved for those dates');
+    if (overlap.length > 0) throw new Error('Item already reserved for that date and time');
+    
     if (resv.stock < resv.quantity) throw new Error('Not enough stock');
 
+    // 3. Deduct stock & Update status
     await conn.query('UPDATE items SET stock = stock - ? WHERE id = ?', [resv.quantity, resv.item_id]);
     await conn.query('UPDATE items SET is_available = CASE WHEN stock <= 0 THEN FALSE ELSE TRUE END WHERE id = ?', [resv.item_id]);
     await conn.query('UPDATE reservations SET status = ? WHERE id = ?', ['Accepted', id]);
     
     await conn.commit();
 
+    // 4. Send Email
     if (resv.email) {
-      await sendEmail(resv.email, 'Reservation Accepted', `<p>Hi <b>${resv.full_name}</b>,</p><p>Your reservation for <b>${resv.item_name}</b> (${resv.quantity} pcs) is ACCEPTED.</p>`);
+      await sendEmail(
+        resv.email, 
+        'Reservation Accepted ✅', 
+        `<p>Hi <b>${resv.full_name}</b>,</p>
+         <p>Your reservation for <b>${resv.item_name}</b> (${resv.quantity} pcs) is ACCEPTED.</p>
+         <p>Date: ${resv.reservation_date}</p>
+         <p>Time: ${resv.start_time} to ${resv.end_time}</p>`
+      );
     }
     res.json({ message: 'Accepted' });
   } catch (err) {

@@ -1,178 +1,144 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
+import API, { ClientAPI } from "../../services/api";
+import "../../App.css";
 
 function Reservation({ onLogout }) {
   const [items, setItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [quantities, setQuantities] = useState({});
+  const [reservationDate, setReservationDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [submitMessage, setSubmitMessage] = useState("");
 
-  // 1. Fetch live equipment inventory catalog from your backend server
   useEffect(() => {
-    setLoading(true);
-    setErrorMessage("");
-    
-    fetch('http://localhost:5000/api/users/items')
+    API.get('/items')
       .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP Error Status: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log("Database payload received safely:", data);
-        const itemsArray = Array.isArray(data) ? data : [];
-        const activeItems = itemsArray.filter(item => item.is_available === 1);
+        const activeItems = res.data.filter(item => item.is_available === 1);
         setItems(activeItems);
-
-        const defaultQuantities = {};
-        activeItems.forEach(item => {
-          defaultQuantities[item.id] = 1;
-        });
-        setQuantities(defaultQuantities);
-
+        const defaults = {};
+        activeItems.forEach(item => { defaults[item.id] = 1; });
+        setQuantities(defaults);
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Network fetch breakdown:", err);
         setErrorMessage(`Could not load inventory: ${err.message}`);
         setLoading(false);
       });
   }, []);
 
-  // 2. Toggle checkbox tracking based on unique database item IDs
   function toggleItem(itemId) {
     setSelectedItems((selected) =>
-      selected.includes(itemId)
-        ? selected.filter((id) => id !== itemId)
-        : [...selected, itemId]
+      selected.includes(itemId) ? selected.filter((id) => id !== itemId) : [...selected, itemId]
     );
   }
 
-  // 3. Handle live manual quantity value corrections per box
   function handleQuantityChange(itemId, inputVal, maxStock) {
     const numericVal = parseInt(inputVal) || 1;
     const clampedVal = Math.max(1, Math.min(numericVal, maxStock));
-    
-    setQuantities(prev => ({
-      ...prev,
-      [itemId]: clampedVal
-    }));
+    setQuantities(prev => ({ ...prev, [itemId]: clampedVal }));
   }
 
-  // 4. Submit booking request package to server API endpoints
   const handleSubmit = async () => {
     if (selectedItems.length === 0) {
       alert("Please check at least one piece of equipment before submitting!");
       return;
     }
+    if (!reservationDate || !startTime || !endTime) {
+      alert("Please select a date, start time, and end time.");
+      return;
+    }
+    if (endTime <= startTime) {
+      alert("End time must be after start time.");
+      return;
+    }
 
-    const savedUserSession = localStorage.getItem("user");
-    const loggedInUser = savedUserSession ? JSON.parse(savedUserSession) : null;
-
-    if (!loggedInUser || !loggedInUser.id) {
-      alert("Session Error: Please log out and sign back in to establish your authenticated user session context.");
+    const savedUser = JSON.parse(localStorage.getItem("user") || "null");
+    if (!savedUser || !savedUser.id) {
+      alert("Session expired. Please log in again.");
       return;
     }
 
     setSubmitMessage("");
-
     try {
-      const requests = selectedItems.map(itemId => 
-        fetch('http://localhost:5000/api/users/reservations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: loggedInUser.id, 
-            item_id: itemId,
-            quantity: quantities[itemId] || 1, 
-            start_date: "2026-11-06",
-            end_date: "2026-11-07"
-          })
+      const requests = selectedItems.map(itemId =>
+        ClientAPI.post('/reservations', {
+          user_id: savedUser.id,
+          item_id: itemId,
+          quantity: quantities[itemId] || 1,
+          reservation_date: reservationDate,
+          start_time: startTime,
+          end_time: endTime
         })
       );
 
       await Promise.all(requests);
-      setSubmitMessage('Booking request packet sent successfully to the Admin Dashboard!');
-      setSelectedItems([]); 
-    } catch (error) {
-      setSubmitMessage('Failed to route reservation packets down to server.');
+      setSubmitMessage('✅ Request sent successfully! Waiting for Admin approval.');
+      setSelectedItems([]);
+      setReservationDate("");
+      setStartTime("");
+      setEndTime("");
+    } catch (err) {
+      setSubmitMessage(`❌ Failed: ${err.response?.data?.error || err.message}`);
     }
   };
 
   return (
     <div className="dashboard-layout">
       <Sidebar onLogout={onLogout} />
-
       <main className="main-content">
         <h2>Reservations</h2>
-        <h3>Equipment Catalog Inventory</h3>
+        <h3>Equipment Catalog</h3>
 
-        {/* LOADING SCREEN LOGIC INDICATOR */}
-        {loading && (
-          <p className="loading-text">
-            Connecting to backend system database pool...
-          </p>
-        )}
-
-        {/* CONNECTION TRACE ERROR SCREEN BLOCK */}
-        {errorMessage && (
-          <div className="error-container">
-            Connection Blocked: {errorMessage}
-            <br />
-            <span>
-              Verify your server console is open and running at http://localhost:5000
-            </span>
+        <div style={{ background: 'white', padding: '20px', borderRadius: '10px', marginBottom: '20px' }}>
+          <h4 style={{ margin: '0 0 15px 0' }}>📅 Select Date & Time</h4>
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ flex: 1 }}>
+              <label>Date</label>
+              <input type="date" value={reservationDate} onChange={(e) => setReservationDate(e.target.value)}
+                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label>Start Time</label>
+              <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)}
+                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label>End Time</label>
+              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)}
+                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            </div>
           </div>
-        )}
+        </div>
 
-        {/* SUCCESS/FAILURE POPUP FOR ACTIONS */}
-        {submitMessage && (
-          <p className="status-message">
-            {submitMessage}
-          </p>
-        )}
-
-        {/* DYNAMIC CHECKBOX GRID INVENTORY BLOCK */}
-        {!loading && !errorMessage && items.length === 0 && (
-          <p className="empty-text">No active items found inside the 'items' database table.</p>
-        )}
+        {loading && <p>Loading items...</p>}
+        {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+        {submitMessage && <p style={{ color: submitMessage.includes('✅') ? 'green' : 'red' }}>{submitMessage}</p>}
 
         {!loading && items.length > 0 && (
-          <ul className="item-list"> 
+          <ul className="item-list">
             {items.map((item) => {
-              const isItemChecked = selectedItems.includes(item.id);
+              const isChecked = selectedItems.includes(item.id);
               return (
                 <li key={item.id} className="item-card">
                   <label className="item-label">
-                    <input 
-                      type="checkbox" 
-                      checked={isItemChecked} 
-                      onChange={() => toggleItem(item.id)}
-                    />
+                    <input type="checkbox" checked={isChecked} onChange={() => toggleItem(item.id)} />
                     <div className="item-details">
-                      <span className="item-name">{item.name}</span> 
+                      <span className="item-name">{item.name}</span>
                       <br />
-                      <span className="item-meta">
-                        Category: {item.category} | Stock: <b>{item.stock}</b> available
-                      </span>
+                      <span className="item-meta">Category: {item.category} | Stock: <b>{item.stock}</b></span>
                     </div>
                   </label>
-
-                  {/* CONDITIONAL SELECTOR ROW INPUT FIELD: ONLY SHOWS IF CHECKED */}
-                  {isItemChecked && (
+                  {isChecked && (
                     <div className="quantity-counter-wrapper">
                       <label>
-                        Quantity needed: 
-                        <input 
-                          type="number" 
-                          min="1"
-                          max={item.stock}
+                        Quantity:
+                        <input type="number" min="1" max={item.stock}
                           value={quantities[item.id] || 1}
-                          onChange={(e) => handleQuantityChange(item.id, e.target.value, item.stock)}
-                        />
+                          onChange={(e) => handleQuantityChange(item.id, e.target.value, item.stock)} />
                       </label>
                     </div>
                   )}
@@ -182,13 +148,9 @@ function Reservation({ onLogout }) {
           </ul>
         )}
 
-        <button 
-          onClick={handleSubmit} 
-          className="submit-btn" 
-          disabled={loading || items.length === 0}
-        >
+        <button onClick={handleSubmit} className="submit-btn" disabled={loading || items.length === 0}>
           Submit Reservation Request
-        </button> 
+        </button>
       </main>
     </div>
   );

@@ -3,7 +3,7 @@ import API from '../../services/api';
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
-  const [activeTab, setActiveTab] = useState('Accepted'); // Default tab
+  const [activeTab, setActiveTab] = useState('Accepted');
 
   const fetchTransactions = async () => {
     try {
@@ -16,12 +16,13 @@ export default function Transactions() {
   useEffect(() => { fetchTransactions(); }, []);
 
   const handleCancel = async (id) => {
-    const reason = prompt('Enter reason for cancelling this reservation:');
-    if (reason) {
+    if (window.confirm('Are you sure you want to cancel this reservation? The stock will be returned.')) {
       try {
-        await API.put(`/reservations/${id}/cancel`, { reason });
+        await API.put(`/reservations/${id}/cancel`);
         fetchTransactions();
-      } catch (err) { alert(err.response?.data?.error || 'Failed to cancel'); }
+      } catch (err) { 
+        alert(err.response?.data?.error || 'Failed to cancel'); 
+      }
     }
   };
 
@@ -32,10 +33,6 @@ export default function Transactions() {
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to send reminder');
     }
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
 
   const getStatusBadge = (status) => {
@@ -52,7 +49,6 @@ export default function Transactions() {
     );
   };
 
-  // Filter transactions based on the active tab
   const filteredTransactions = transactions.filter(t => t.status === activeTab);
 
   return (
@@ -91,8 +87,9 @@ export default function Transactions() {
               <th>Item</th>
               <th>Qty</th>
               <th>Status</th>
-              <th>Reserve Date</th>
-              <th>Return Date</th>
+              <th>Date</th>
+              <th>Start Time</th>
+              <th>End Time</th>
               <th>Reason</th>
               <th>Actions</th>
             </tr>
@@ -100,7 +97,7 @@ export default function Transactions() {
           <tbody>
             {filteredTransactions.length === 0 ? (
               <tr>
-                <td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                <td colSpan="10" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
                   No {activeTab.toLowerCase()} transactions yet.
                 </td>
               </tr>
@@ -112,8 +109,11 @@ export default function Transactions() {
                   <td>{r.item_name}</td>
                   <td>{r.quantity}</td>
                   <td>{getStatusBadge(r.status)}</td>
-                  <td>{formatDate(r.start_date)}</td>
-                  <td>{formatDate(r.end_date)}</td>
+                  
+                  {/* Updated Date/Time Columns */}
+                  <td>{r.reservation_date ? new Date(r.reservation_date).toLocaleDateString() : '—'}</td>
+                  <td>{r.start_time ? r.start_time.substring(0, 5) : '—'}</td>
+                  <td>{r.end_time ? r.end_time.substring(0, 5) : '—'}</td>
                   
                   <td style={{ color: '#64748b', fontSize: '0.85rem', whiteSpace: 'normal', maxWidth: '200px' }}>
                     {r.decline_reason || '—'}
