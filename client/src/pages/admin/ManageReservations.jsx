@@ -51,6 +51,16 @@ export default function ManageReservations() {
     }
   };
 
+  // ─── NEW HELPER ───
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '—';
+    const [hours, minutes] = timeStr.split(':');
+    const h = parseInt(hours, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 || 12;
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
   return (
     <div>
       <h1 style={{ fontSize: '2rem', color: '#1e293b', marginBottom: '30px' }}>Pending Reservations</h1>
@@ -92,8 +102,8 @@ export default function ManageReservations() {
                   <td>{r.item_name}</td>
                   <td>{r.quantity}</td>
                   <td>{r.reservation_date ? new Date(r.reservation_date).toLocaleDateString() : '—'}</td>
-                  <td>{r.start_time ? r.start_time.substring(0, 5) : '—'}</td>
-                  <td>{r.end_time ? r.end_time.substring(0, 5) : '—'}</td>
+                  <td>{formatTime(r.start_time)}</td>
+                  <td>{formatTime(r.end_time)}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button className="btn btn-success" onClick={() => handleAccept(r.id)} style={{ padding: '8px 14px' }}>Accept</button>

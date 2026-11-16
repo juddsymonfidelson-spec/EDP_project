@@ -8,10 +8,10 @@ import '../../App.css';
 function Dashboard({ onLogout }) {
   const navigate = useNavigate();
   const [reservations, setReservations] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Notification Dropdown State
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -33,9 +33,12 @@ function Dashboard({ onLogout }) {
         setErrorMessage(`Could not load reservations: ${err.message}`);
         setLoading(false);
       });
+
+    ClientAPI.get(`/notifications/${savedUser.id}`)
+      .then(res => setMessages(res.data))
+      .catch(err => console.error('Notifications failed:', err));
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -46,9 +49,7 @@ function Dashboard({ onLogout }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Filter for notifications (Anything not pending)
   const notifications = reservations.filter(r => r.status !== 'Pending');
-  // Filter for the main dashboard view (Only pending and accepted)
   const activeReservations = reservations.filter(r => r.status === 'Pending' || r.status === 'Accepted');
 
   const formatDate = (dateStr) => {
@@ -75,16 +76,17 @@ function Dashboard({ onLogout }) {
     if (status === 'Accepted') return <FaCheckCircle color="#22c55e" size={16} />;
     if (status === 'Declined') return <FaTimesCircle color="#ef4444" size={16} />;
     if (status === 'Cancelled') return <FaTimesCircle color="#f59e0b" size={16} />;
+    if (status === 'Returned') return <FaCheckCircle color="#3b82f6" size={16} />;
     return null;
   };
+
+  const notifCount = notifications.length + messages.length;
 
   return (
     <div className="dashboard-layout">
       <Sidebar onLogout={onLogout} />
 
       <main className="main-content" style={{ display: 'flex', flexDirection: 'column' }}>
-
-        {/* TOPBAR WITH NOTIFICATIONS */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '15px', marginBottom: '20px' }}>
           <div>
             <h2 style={{ margin: 0 }}>Dashboard</h2>
@@ -92,14 +94,10 @@ function Dashboard({ onLogout }) {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            {/* BELL ICON */}
             <div style={{ position: 'relative' }} ref={dropdownRef}>
-              <div
-                onClick={() => setIsNotifOpen(!isNotifOpen)}
-                style={{ cursor: 'pointer', position: 'relative' }}
-              >
+              <div onClick={() => setIsNotifOpen(!isNotifOpen)} style={{ cursor: 'pointer', position: 'relative' }}>
                 <FaBell color={isNotifOpen ? "#0ea5e9" : "#64748b"} size={22} />
-                {notifications.length > 0 && (
+                {notifCount > 0 && (
                   <span style={{
                     position: 'absolute', top: '-6px', right: '-8px',
                     backgroundColor: '#ef4444', color: 'white',
@@ -107,12 +105,11 @@ function Dashboard({ onLogout }) {
                     padding: '2px 5px', borderRadius: '50%',
                     minWidth: '16px', textAlign: 'center'
                   }}>
-                    {notifications.length}
+                    {notifCount}
                   </span>
                 )}
               </div>
 
-              {/* NOTIFICATION DROPDOWN */}
               {isNotifOpen && (
                 <div style={{
                   position: 'absolute', top: '35px', right: '0', width: '350px',
@@ -121,34 +118,47 @@ function Dashboard({ onLogout }) {
                   zIndex: 10000, maxHeight: '400px', overflowY: 'auto'
                 }}>
                   <div style={{ padding: '15px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: '600', color: '#1e293b' }}>
-                    Request Updates
+                    Notifications
                   </div>
 
-                  {notifications.length === 0 ? (
+                  {notifCount === 0 ? (
                     <div style={{ padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
                       No new updates.
                     </div>
                   ) : (
-                    notifications.map(n => (
-                      <div key={n.id} style={{ padding: '15px 20px', borderBottom: '1px solid #f1f5f9' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
-                          {getStatusIcon(n.status)}
-                          <span style={{ fontSize: '0.85rem', fontWeight: '600', color: '#1e293b' }}>
-                            {n.item_name} - {n.status}
-                          </span>
-                        </div>
-                        <div style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: '1.4' }}>
-                          {n.decline_reason && (
-                            <div style={{ color: '#ef4444', marginTop: '4px' }}>
-                              <strong>Reason:</strong> {n.decline_reason}
-                            </div>
-                          )}
-                          <div style={{ marginTop: '4px', color: '#94a3b8' }}>
-                            {formatDate(n.reservation_date)} at {formatTime(n.start_time)}
+                    <>
+                      {messages.map(m => (
+                        <div key={`msg-${m.id}`} style={{ padding: '15px 20px', borderBottom: '1px solid #f1f5f9' }}>
+                          <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#1e293b', marginBottom: '4px' }}>
+                            {m.subject}
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: '1.4' }}>
+                            {m.body}
                           </div>
                         </div>
-                      </div>
-                    ))
+                      ))}
+
+                      {notifications.map(n => (
+                        <div key={`res-${n.id}`} style={{ padding: '15px 20px', borderBottom: '1px solid #f1f5f9' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
+                            {getStatusIcon(n.status)}
+                            <span style={{ fontSize: '0.85rem', fontWeight: '600', color: '#1e293b' }}>
+                              {n.item_name} - {n.status}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: '1.4' }}>
+                            {n.decline_reason && (
+                              <div style={{ color: '#ef4444', marginTop: '4px' }}>
+                                <strong>Reason:</strong> {n.decline_reason}
+                              </div>
+                            )}
+                            <div style={{ marginTop: '4px', color: '#94a3b8' }}>
+                              {formatDate(n.reservation_date)} at {formatTime(n.start_time)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
               )}
@@ -163,7 +173,6 @@ function Dashboard({ onLogout }) {
         {loading && <p>Loading...</p>}
         {errorMessage && <div className="error-container">{errorMessage}</div>}
 
-        {/* MAIN DASHBOARD CONTENT (Active/Pending Only) */}
         {!loading && !errorMessage && activeReservations.length === 0 && (
           <div style={{ textAlign: 'center', padding: '50px', color: '#64748b' }}>
             <FaCalendarAlt size={40} style={{ opacity: 0.3, marginBottom: '10px' }} />
@@ -185,10 +194,9 @@ function Dashboard({ onLogout }) {
                   </p>
                 </div>
                 {r.status === 'Pending' && (
-                  <button
-                    onClick={() => navigate(`/edit-reservation/${r.id}`, { state: { reservation: r } })}
-                    className="submit-btn"
-                    style={{ width: 'auto', padding: '8px 16px', marginTop: '10px', fontSize: '0.8rem' }}>Edit Request</button>
+                  <button onClick={() => navigate(`/edit-reservation/${r.id}`, { state: { reservation: r } })} className="submit-btn" style={{ width: 'auto', padding: '8px 16px', marginTop: '10px', fontSize: '0.8rem' }}>
+                    Edit Request
+                  </button>
                 )}
               </li>
             ))}

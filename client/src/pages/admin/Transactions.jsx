@@ -16,22 +16,40 @@ export default function Transactions() {
   useEffect(() => { fetchTransactions(); }, []);
 
   const handleCancel = async (id) => {
-    if (window.confirm('Are you sure you want to cancel this reservation? The stock will be returned.')) {
+    const reason = prompt('Enter reason for cancelling this reservation:');
+    if (reason === null) return; // user clicked Cancel on the prompt
+    if (!reason.trim()) {
+      alert('Please provide a reason for cancellation.');
+      return;
+    }
+
+    try {
+      await API.put(`/reservations/${id}/cancel`, { reason });
+      fetchTransactions();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to cancel');
+    }
+  };
+
+  const handleReturn = async (id) => {
+    if (window.confirm('Confirm that the item has been returned? Stock will be added back.')) {
       try {
-        await API.put(`/reservations/${id}/cancel`);
+        await API.put(`/reservations/${id}/return`);
         fetchTransactions();
-      } catch (err) { 
-        alert(err.response?.data?.error || 'Failed to cancel'); 
+      } catch (err) {
+        alert(err.response?.data?.error || 'Failed to mark as returned');
       }
     }
   };
 
-  const handleRemind = async (id) => {
-    try {
-      await API.post(`/reservations/${id}/remind`);
-      alert('Reminder email sent successfully!');
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to send reminder');
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to permanently delete this record from the history?')) {
+      try {
+        await API.delete(`/reservations/${id}`);
+        fetchTransactions();
+      } catch (err) {
+        alert(err.response?.data?.error || 'Failed to delete');
+      }
     }
   };
 
@@ -49,6 +67,15 @@ export default function Transactions() {
     );
   };
 
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '—';
+    const [hours, minutes] = timeStr.split(':');
+    const h = parseInt(hours, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 || 12;
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
   const filteredTransactions = transactions.filter(t => t.status === activeTab);
 
   return (
@@ -57,7 +84,7 @@ export default function Transactions() {
 
       {/* TABS */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        {['Accepted', 'Declined', 'Cancelled'].map(tab => (
+        {['Accepted', 'Declined', 'Cancelled', 'Returned'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -110,21 +137,28 @@ export default function Transactions() {
                   <td>{r.quantity}</td>
                   <td>{getStatusBadge(r.status)}</td>
                   
-                  {/* Updated Date/Time Columns */}
                   <td>{r.reservation_date ? new Date(r.reservation_date).toLocaleDateString() : '—'}</td>
-                  <td>{r.start_time ? r.start_time.substring(0, 5) : '—'}</td>
-                  <td>{r.end_time ? r.end_time.substring(0, 5) : '—'}</td>
+                  <td>{formatTime(r.start_time)}</td>
+                  <td>{formatTime(r.end_time)}</td>
                   
                   <td style={{ color: '#64748b', fontSize: '0.85rem', whiteSpace: 'normal', maxWidth: '200px' }}>
                     {r.decline_reason || '—'}
                   </td>
                   
                   <td>
-                    {r.status === 'Accepted' && (
+                    {r.status === 'Accepted' ? (
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        {/* <button className="btn btn-primary" onClick={() => handleRemind(r.id)} style={{ padding: '8px 14px' }}>Remind</button>  */}
+                        <button className="btn btn-success" onClick={() => handleReturn(r.id)} style={{ padding: '8px 14px' }}>Returned</button>
                         <button className="btn btn-danger" onClick={() => handleCancel(r.id)} style={{ padding: '8px 14px' }}>Cancel</button>
                       </div>
+                    ) : (
+                      <button 
+                        className="btn" 
+                        onClick={() => handleDelete(r.id)} 
+                        style={{ padding: '8px 14px', backgroundColor: '#64748b' }}
+                      >
+                        Delete Record
+                      </button>
                     )}
                   </td>
                 </tr>

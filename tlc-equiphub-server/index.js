@@ -26,7 +26,11 @@ const reservationRoutes = require('./routes/reservationRoutes');
 app.use('/api/admin/items', itemRoutes);
 app.use('/api/admin/reservations', reservationRoutes);
 
+// ============================================
 // PUBLIC CLIENT ROUTES
+// ============================================
+
+// Get client's own reservations
 app.get('/api/client/my-reservations/:userId', async (req, res) => {
   try {
     const [rows] = await db.query(
@@ -43,6 +47,24 @@ app.get('/api/client/my-reservations/:userId', async (req, res) => {
   }
 });
 
+// Get client notifications
+app.get('/api/client/notifications/:userId', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT id, subject, body, sent_at AS created_at 
+       FROM messages 
+       WHERE user_id = ? 
+       ORDER BY sent_at DESC 
+       LIMIT 10`,
+      [req.params.userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Submit a new reservation
 app.post('/api/client/reservations', async (req, res) => {
   try {
     const { user_id, item_id, quantity, reservation_date, start_time, end_time } = req.body;
@@ -56,12 +78,25 @@ app.post('/api/client/reservations', async (req, res) => {
       [user_id, item_id, quantity || 1, reservation_date, start_time, end_time]
     );
 
+    // ✅ Dynamically find the Admin user ID (instead of hardcoding 1)
+    const [[admin]] = await db.query("SELECT ID FROM users WHERE role = 'admin' LIMIT 1");
+
+    if (admin) {
+      const [[user]] = await db.query('SELECT UserName FROM users WHERE ID = ?', [user_id]);
+      const [[item]] = await db.query('SELECT name FROM items WHERE id = ?', [item_id]);
+      await db.query(
+        `INSERT INTO messages (user_id, reservation_id, subject, body) VALUES (?, ?, 'New Reservation Request', ?)`,
+        [admin.ID, result.insertId, `${user.UserName} requested ${quantity} ${item.name}(s) on ${reservation_date}`]
+      );
+    }
+
     res.status(201).json({ message: 'Reservation created!', id: result.insertId });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Edit a pending reservation
 app.put('/api/client/reservations/:id', async (req, res) => {
   try {
     const { user_id, quantity, reservation_date, start_time, end_time } = req.body;
@@ -84,6 +119,7 @@ app.put('/api/client/reservations/:id', async (req, res) => {
   }
 });
 
+// Cancel a pending reservation (client)
 app.delete('/api/client/reservations/:id', async (req, res) => {
   try {
     const { userId } = req.body;
@@ -102,7 +138,9 @@ app.delete('/api/client/reservations/:id', async (req, res) => {
   }
 });
 
+// ============================================
 // AUTH ROUTES
+// ============================================
 app.post('/api/register', (req, res) => {
   const { username, email, password, role } = req.body;
   if (!username || !email || !password || !role) {
@@ -144,6 +182,9 @@ app.post('/api/login', (req, res) => {
   });
 });
 
+// ============================================
+// START SERVER
+// ============================================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
