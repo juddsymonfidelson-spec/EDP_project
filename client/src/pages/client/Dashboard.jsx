@@ -188,10 +188,7 @@ function Dashboard({ onLogout }) {
                   <button
                     onClick={() => navigate(`/edit-reservation/${r.id}`, { state: { reservation: r } })}
                     className="submit-btn"
-                    style={{ width: 'auto', padding: '8px 16px', marginTop: '10px', fontSize: '0.8rem' }}
-                  >
-                    Edit Request
-                  </button>
+                    style={{ width: 'auto', padding: '8px 16px', marginTop: '10px', fontSize: '0.8rem' }}>Edit Request</button>
                 )}
               </li>
             ))}
