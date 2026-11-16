@@ -58,7 +58,7 @@ function EditReservation({ onLogout }) {
         start_time: startTime,
         end_time: endTime
       });
-      setSubmitMessage('✅ Updated successfully! Redirecting...');
+      setSubmitMessage('✅ Updated successfully! (☆▽☆) Redirecting...');
       setTimeout(() => navigate('/dashboard'), 1200);
     } catch (err) {
       setSubmitMessage('❌ Failed: ' + (err.response?.data?.error || err.message));
@@ -75,7 +75,7 @@ function EditReservation({ onLogout }) {
       await ClientAPI.delete(`/reservations/${existing.id}`, {
         data: { userId: savedUser.id }
       });
-      setSubmitMessage('🗑️ Reservation cancelled. Redirecting...');
+      setSubmitMessage('🗑️ Reservation cancelled. <(＿　＿)> Redirecting...');
       setTimeout(() => navigate('/dashboard'), 1200);
     } catch (err) {
       setSubmitMessage('❌ Failed to cancel: ' + (err.response?.data?.error || err.message));
@@ -91,18 +91,18 @@ function EditReservation({ onLogout }) {
         {submitMessage && <p style={{ color: 'green', marginBottom: 20 }}>{submitMessage}</p>}
 
         <div style={{ background: 'white', padding: 20, borderRadius: 10, marginBottom: 20 }}>
-          <h4>📦 Equipment</h4>
+          <h4>Equipment:</h4>
           <strong>{existing.item_name}</strong> — Status: {existing.status}
         </div>
 
         <div style={{ background: 'white', padding: 20, borderRadius: 10, marginBottom: 20 }}>
-          <h4>🔢 Quantity</h4>
+          <h4>Quantity:</h4>
           <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} 
             style={{ width: 120, padding: 10, borderRadius: 6, border: '1px solid #ccc' }} />
         </div>
 
         <div style={{ background: 'white', padding: 20, borderRadius: 10, marginBottom: 20 }}>
-          <h4>📅 Date & Time</h4>
+          <h4>Date & Time:</h4>
           <div style={{ display: 'flex', gap: 20 }}>
             <div style={{ flex: 1 }}>
               <label>Date</label>
@@ -127,7 +127,7 @@ function EditReservation({ onLogout }) {
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
           <button onClick={handleCancel} disabled={saving} style={{ padding: '12px 24px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
-            Cancel
+            Remove
           </button>
           <button onClick={() => navigate('/dashboard')} style={{ padding: '12px 24px', background: '#e2e8f0', color: '#1e293b', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
             Back

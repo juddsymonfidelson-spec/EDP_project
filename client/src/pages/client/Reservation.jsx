@@ -90,11 +90,11 @@ function Reservation({ onLogout }) {
     <div className="dashboard-layout">
       <Sidebar onLogout={onLogout} />
       <main className="main-content">
-        <h2>Reservations</h2>
+        <h2>Make a Reservation</h2>
         <h3>Equipment Catalog</h3>
 
         <div style={{ background: 'white', padding: '20px', borderRadius: '10px', marginBottom: '20px' }}>
-          <h4 style={{ margin: '0 0 15px 0' }}>📅 Select Date & Time</h4>
+          <h4 style={{ margin: '0 0 15px 0' }}>Select Date & Time:</h4>
           <div style={{ display: 'flex', gap: '20px' }}>
             <div style={{ flex: 1 }}>
               <label>Date</label>

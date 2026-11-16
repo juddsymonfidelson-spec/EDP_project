@@ -10,14 +10,14 @@ function Dashboard({ onLogout }) {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
-  
+
   // Notification Dropdown State
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem("user") || "null");
-    
+
     if (!savedUser || !savedUser.id) {
       setErrorMessage("Session expired. Please log in again.");
       setLoading(false);
@@ -56,6 +56,21 @@ function Dashboard({ onLogout }) {
     return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '';
+    const [hours, minutes = '00'] = timeStr.split(':');
+    const h = parseInt(hours, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 || 12;
+    return `${hour12}:${minutes.padStart(2, '0')} ${ampm}`;
+  };
+
+  const formatTimeRange = (start, end) => {
+    if (!start && !end) return '';
+    if (!end) return formatTime(start);
+    return `${formatTime(start)} – ${formatTime(end)}`;
+  };
+
   const getStatusIcon = (status) => {
     if (status === 'Accepted') return <FaCheckCircle color="#22c55e" size={16} />;
     if (status === 'Declined') return <FaTimesCircle color="#ef4444" size={16} />;
@@ -66,21 +81,21 @@ function Dashboard({ onLogout }) {
   return (
     <div className="dashboard-layout">
       <Sidebar onLogout={onLogout} />
-      
+
       <main className="main-content" style={{ display: 'flex', flexDirection: 'column' }}>
-        
+
         {/* TOPBAR WITH NOTIFICATIONS */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '15px', marginBottom: '20px' }}>
           <div>
             <h2 style={{ margin: 0 }}>Dashboard</h2>
             <p style={{ margin: '5px 0 0 0' }}>Welcome to your dashboard!</p>
           </div>
-          
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             {/* BELL ICON */}
             <div style={{ position: 'relative' }} ref={dropdownRef}>
-              <div 
-                onClick={() => setIsNotifOpen(!isNotifOpen)} 
+              <div
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
                 style={{ cursor: 'pointer', position: 'relative' }}
               >
                 <FaBell color={isNotifOpen ? "#0ea5e9" : "#64748b"} size={22} />
@@ -108,7 +123,7 @@ function Dashboard({ onLogout }) {
                   <div style={{ padding: '15px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: '600', color: '#1e293b' }}>
                     Request Updates
                   </div>
-                  
+
                   {notifications.length === 0 ? (
                     <div style={{ padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
                       No new updates.
@@ -129,7 +144,7 @@ function Dashboard({ onLogout }) {
                             </div>
                           )}
                           <div style={{ marginTop: '4px', color: '#94a3b8' }}>
-                            {formatDate(n.reservation_date)} at {n.start_time}
+                            {formatDate(n.reservation_date)} at {formatTime(n.start_time)}
                           </div>
                         </div>
                       </div>
@@ -166,13 +181,13 @@ function Dashboard({ onLogout }) {
                     Status: <span style={{ fontWeight: 'bold', color: r.status === 'Accepted' ? '#22c55e' : '#f59e0b' }}>{r.status}</span>
                   </p>
                   <p style={{ margin: '5px 0 0 0', fontSize: '0.85rem', color: '#64748b' }}>
-                    {formatDate(r.reservation_date)} | {r.start_time} - {r.end_time}
+                    {formatDate(r.reservation_date)} | {formatTimeRange(r.start_time, r.end_time)}
                   </p>
                 </div>
                 {r.status === 'Pending' && (
-                  <button 
-                    onClick={() => navigate(`/edit-reservation/${r.id}`, { state: { reservation: r } })} 
-                    className="submit-btn" 
+                  <button
+                    onClick={() => navigate(`/edit-reservation/${r.id}`, { state: { reservation: r } })}
+                    className="submit-btn"
                     style={{ width: 'auto', padding: '8px 16px', marginTop: '10px', fontSize: '0.8rem' }}
                   >
                     Edit Request
