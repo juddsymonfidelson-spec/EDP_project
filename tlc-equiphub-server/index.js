@@ -50,16 +50,23 @@ app.get('/api/client/my-reservations/:userId', async (req, res) => {
 // Get client notifications
 app.get('/api/client/notifications/:userId', async (req, res) => {
   try {
+    const { userId } = req.params;
+
+    if (!userId || isNaN(Number(userId))) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+
     const [rows] = await db.query(
-      `SELECT id, subject, body, sent_at AS created_at 
-       FROM messages 
-       WHERE user_id = ? 
-       ORDER BY sent_at DESC 
-       LIMIT 10`,
-      [req.params.userId]
+      `SELECT id, user_id, reservation_id, subject, body, created_at
+       FROM messages
+       WHERE user_id = ?
+       ORDER BY created_at DESC`,
+      [userId]
     );
+
     res.json(rows);
   } catch (err) {
+    console.error('notifications error:', err);
     res.status(500).json({ error: err.message });
   }
 });
