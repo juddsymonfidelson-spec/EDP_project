@@ -115,7 +115,7 @@ const declineReservation = async (req, res) => {
 const cancelReservation = async (req, res) => {
   const { id } = req.params;
   // Reason is optional. If client doesn't send one, it defaults to null.
-  const { reason = null } = req.body; 
+  const { reason = null } = req.body || {};
   
   const conn = await pool.promise().getConnection();
   try {

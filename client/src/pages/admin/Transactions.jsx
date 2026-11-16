@@ -122,7 +122,7 @@ export default function Transactions() {
                   <td>
                     {r.status === 'Accepted' && (
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <button className="btn btn-primary" onClick={() => handleRemind(r.id)} style={{ padding: '8px 14px' }}>Remind</button>
+                        {/* <button className="btn btn-primary" onClick={() => handleRemind(r.id)} style={{ padding: '8px 14px' }}>Remind</button> */}
                         <button className="btn btn-danger" onClick={() => handleCancel(r.id)} style={{ padding: '8px 14px' }}>Cancel</button>
                       </div>
                     )}
